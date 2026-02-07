@@ -1,0 +1,26 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "stronghold:default",
+    "core:default",
+    "opener:default",
+    "sql:default",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "args": true,
+          "name": "binaries/app",
+          "sidecar": true
+        }
+      ]
+    },
+    "shell:default",
+    "stronghold:default"
+  ]
+}

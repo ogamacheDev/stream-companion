@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "nodemon -x \"npm run build:linux\" index.ts",
+    "build:ts": "tsc -p tsconfig.json",
+    "build:linux": "npm run build:ts && pkg dist/index.js --targets node20-linux-x64 --output app && node rename.js",
+    "build:win": "npm run build:ts && pkg dist/index.js --targets node18-win-x64 --output app && node rename-win.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/openai": "^1.2.5",
+    "langchain": "^1.2.18",
+    "nodemon": "^3.1.11",
+    "openai": "^6.18.0",
+    "typescript": "^5.9.3",
+    "ws": "^8.19.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}
