@@ -29,6 +29,7 @@ tauri-plugin-sql = { version = "2", features = ["mysql", "sqlite"] }
 tauri-plugin-shell = "2"
 tauri-plugin-stronghold = "2"
 rust-argon2 = "3.0"
-keyring = "3"
 rand = "0.8"
 base64 = "0.22"
+tauri-plugin-keyring = "0.1.0"
+tauri-plugin-fs = "2"

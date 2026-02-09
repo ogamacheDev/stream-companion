@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx watch index.ts",
+    "dev": "nodemon -x \"npm run start\" index.ts",
+    "dev:linux": "nodemon -x \"npm run build:linux\" index.ts",
+    "build": "npm run build:ts && pkg dist/index.js --targets node20-win-x64 --output backend.exe && node rename.js",
+    "build:linux": "npm run build:ts && pkg dist/index.js --targets node20-linux-x64 --output backend && node rename.js",
+    "build:ts": "tsc -p tsconfig.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/core": "^1.1.19",
+    "@langchain/openai": "^1.2.5",
+    "langchain": "^1.2.18",
+    "nodemon": "^3.1.11",
+    "openai": "^6.18.0",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "typescript": "^5.9.3",
+    "ws": "^8.19.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "@types/ws": "^8.18.1"
+  }
+}

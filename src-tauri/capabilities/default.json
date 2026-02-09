@@ -10,17 +10,28 @@
     "core:default",
     "opener:default",
     "sql:default",
+    "fs:default",
+    "fs:allow-appconfig-write",
+    "fs:allow-appconfig-write-recursive",
+    "fs:allow-create",
+    "fs:allow-read-text-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [{ "path": "$APPDATA/*" }]
+    },
+    "keyring:default",
     {
       "identifier": "shell:allow-spawn",
       "allow": [
         {
           "args": true,
-          "name": "binaries/app",
+          "name": "binaries/backend",
           "sidecar": true
         }
       ]
     },
     "shell:default",
-    "stronghold:default"
+    "stronghold:default",
+    "fs:default"
   ]
 }
