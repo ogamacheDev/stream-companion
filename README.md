@@ -6,7 +6,6 @@ An AI Streamer Companion that allows integration with many streaming platforms a
 
 - Websocket server for real-time communication with streaming platforms and services.
 - **COMING SOON** - Custom actions triggered by the AI model sending messages to a websocket server.
-- **COMING SOON** - Logging interface to monitor interactions and events.
 
 ## Installation
 
@@ -33,3 +32,9 @@ If you want to customize the triggers from the stream, you can add **triggers** 
 3. Enter exactly the type of trigger (ex: Follow, Subscription, Reward Redemption), click `Add` then `Ok`.
 4. Right click on `Set argument %aiPrompt% to ...`, select `Dupplicate Sub-Action`, then drag the duplicated action in the new `case`.
 5. Double click on the dupplicated action and set the prompt to what you want the AI to recieve (ex: %userName& just Followed). I suggest looking at the [Streamer.bot trigger documentation](https://docs.streamer.bot/api/triggers) to see all the arguments given per trigger.
+
+## Roadmap
+
+- [ ] Add AI actions that sends messages to a Websocket Server.
+- [ ] Update the memory management to information in a database and not in memory.
+- [ ] Add support to saving the whole chat conversation to allow a better context for the AI model.
