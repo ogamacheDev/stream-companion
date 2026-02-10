@@ -11,7 +11,7 @@ An AI Streamer Companion that allows integration with many streaming platforms a
 
 This tool is developped to work with Streamer.bot and Speaker.bot, but they won't explain how to do the base configuration of them, I suggest reading the documentation of [Streamer.bot](https://docs.streamer.bot/get-started/introduction) and [Speaker.bot](https://speaker.bot/get-started/installation) if it's the first time you use them.
 1. Download and install the Stream Companion using the executable from the [releases](https://github.com/ogamacheDev/stream-companion/releases) page.
-2. Open the application and configure the app settings, such as the API Key and the context for the AI model's behavior.
+2. Open the application and configure the app settings, such as the API Key (currently only supports OpenAI) and the context for the AI model's behavior.
 
 ### Streamer.bot setup
 
