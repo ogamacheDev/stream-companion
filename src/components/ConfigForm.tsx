@@ -82,9 +82,7 @@ const ConfigForm = ({backendReady, aiReady, setAiReady}: { backendReady: boolean
             toast.promise(new Promise(async (resolve, revoke) => {
                 try {
                     const fetchedConfig = await config.fetch();
-                    if (fetchedConfig) {
-                        setUserConfig(fetchedConfig);
-                    }
+                    setUserConfig(fetchedConfig);
 
                     const apiKey = await ai.fetchAPIKey();
                     if (apiKey && apiKeyInputRef.current) {
