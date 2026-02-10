@@ -67,10 +67,10 @@ const ConfigForm = ({backendReady, aiReady, setAiReady}: { backendReady: boolean
     const restartHandling = async () => {
         setLoadingState(true);
 
-        const currentConfig = await config.fetch();
+        const fetchedConfig = await config.fetch();
         setAiReady(false);
 
-        ai.restart(client, currentConfig.context, async (res) => {
+        ai.restart(client, fetchedConfig.context, async (res) => {
             setAiReady(res);
         })
 
@@ -97,6 +97,7 @@ const ConfigForm = ({backendReady, aiReady, setAiReady}: { backendReady: boolean
                     }
 
                     setUserConfig(fetchedConfig);
+                    resolve("")
                 } catch (e) {
                     console.error(e)
                     revoke("");
@@ -106,7 +107,7 @@ const ConfigForm = ({backendReady, aiReady, setAiReady}: { backendReady: boolean
             }), {
                 loading: "Loading configuration...",
                 success: () => `Configuration has been loaded!`,
-                error: "Failed to load configuration",
+                error: "Failed to load configuration, falling back to default config.",
             })
         }
     }, [apiKeyInputRef, backendReady]);
