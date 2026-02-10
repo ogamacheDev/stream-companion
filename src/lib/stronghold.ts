@@ -39,7 +39,7 @@ const init = async ()=> {
                 const store = client.getStore();
                 const data = await store.get(key);
 
-                if (!data) {
+                if (!data || data.length === 0) {
                     console.warn(`No data found for key: ${key}`);
                     return "";
                 }
