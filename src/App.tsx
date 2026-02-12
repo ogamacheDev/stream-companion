@@ -2,29 +2,30 @@ import "./App.css";
 import {ConfigForm} from "@/components/ConfigForm.tsx";
 import {MessageForm} from "@/components/MessageForm.tsx";
 import {useEffect, useState} from "react";
-import * as backend from "@/lib/backend.ts"
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
-import {toast} from "sonner";
+import {backendInit, getAiState, startAi} from "@/lib/backend.ts";
 
 function App() {
   const [backendReady, setBackendReady] = useState(false);
   const [aiReady, setAiReady] = useState(false);
 
   useEffect(() => {
-    const backendInit = async () => {
-      try {
-        const client = await backend.init();
-        if (!client) {
-          toast.error("Failed to initialize backend connection.");
-          return;
-        }
-        setBackendReady(true);
-      } catch (error) {
-        console.error("Error initializing backend:", error);
-        toast.error("Failed to initialize backend connection.");
-      }
-    }
-    backendInit();
+      backendInit().then(async (success) => {
+          if (success) {
+              setBackendReady(true);
+
+              const state = await getAiState();
+              if (state) {
+                  setAiReady(true);
+                  return;
+              }
+
+              const success = await startAi();
+              if (success) {
+                  setAiReady(true);
+              }
+          }
+      })
   }, []);
 
   return (

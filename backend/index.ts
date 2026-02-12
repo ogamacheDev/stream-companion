@@ -1,4 +1,4 @@
-import {aiInit, aiMessage, aiStart} from "./src/ai.js";
+import {startAI, messageAi, getAiState} from "./src/ai.js";
 import {Server} from "socket.io";
 import {WebSocketServer} from "ws";
 
@@ -23,12 +23,12 @@ const wss = new WebSocketServer({
 wss.on("connection", (client) => {
     console.log("Websocket: Connected");
 
-    client.on("message", async (message: string) => {
+    client.on("message", async (data) => {
         console.log("Websocket: Prompting");
-        const res = await aiMessage(message);
+        const res = await messageAi(data.toString());
+        console.log(`Websocket: ${res.message}`);
 
         if (res.success && typeof res.message == "string") {
-            console.log(`Websocket: ${res.message}`);
             console.log("Websocket: Sending Message")
             sendMessage(res.message);
         }
@@ -67,25 +67,19 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
     console.log("Socket.io: Connected");
 
-    socket.on("ai:init", async (config: AiConfig, callback) => {
+    socket.on("ai:start", async (config: AiConfig, callback) => {
         aiConfig = config;
-        callback(await aiInit(config));
+        callback(await startAI(config));
     })
 
-    socket.on("ai:restart", async (config: AiConfig, callback) => {
-        console.log("Socket.io: Restarting AI")
-
-        if (config) {
-            aiConfig = config;
-            callback(await aiStart(config));
-        } else {
-            callback(await aiStart(aiConfig));
-        }
+    socket.on("ai:status" , (callback) => {
+        console.log("Socket.io: Status Check");
+        callback(getAiState());
     })
 
     socket.on("ai:message", async (message: string, callback) => {
         console.log("Socket.io: Prompting");
-        const res = await aiMessage(message);
+        const res = await messageAi(message);
 
         console.log(`Socket.io: ${res.message}`);
         if (res.success && typeof res.message == "string") {
