@@ -8,13 +8,6 @@ type AiConfig = {
 }
 
 let aiConfig: AiConfig;
-let sendMessage = (message: string) => {
-    wss.clients.forEach((client) => {
-        if (client.readyState === 1) {
-            client.send(message)
-        }
-    })
-}
 
 const wss = new WebSocketServer({
     port: 6562
@@ -24,13 +17,22 @@ wss.on("connection", (client) => {
     console.log("Websocket: Connected");
 
     client.on("message", async (data) => {
-        console.log("Websocket: Prompting");
-        const res = await messageAi(data.toString());
-        console.log(`Websocket: ${res.message}`);
+        const message = data.toString();
+        const json = JSON.parse(message);
+        console.log(json);
 
-        if (res.success && typeof res.message == "string") {
-            console.log("Websocket: Sending Message")
-            sendMessage(res.message);
+        if (json.type === "event") {
+            console.log("Websocket: Prompting");
+            const res = await messageAi(message);
+            console.log(res);
+
+            if (res.success && typeof res.message == "string") {
+                console.log("Websocket: Sending Message")
+                client.send(JSON.stringify({
+                    silent: json.silent,
+                    message: res.message
+                }));
+            }
         }
     })
 
@@ -60,7 +62,6 @@ io.use(async (socket, next) => {
         return next(new Error("401 Not Authorized"));
     }
     console.log("Socket.io: Authenticated")
-
     next();
 });
 
@@ -75,20 +76,6 @@ io.on("connection", (socket) => {
     socket.on("ai:status" , (callback) => {
         console.log("Socket.io: Status Check");
         callback(getAiState());
-    })
-
-    socket.on("ai:message", async (message: string, callback) => {
-        console.log("Socket.io: Prompting");
-        const res = await messageAi(message);
-
-        console.log(`Socket.io: ${res.message}`);
-        if (res.success && typeof res.message == "string") {
-            console.log("Socket.io: Sending Message");
-            sendMessage(res.message);
-        }
-
-        console.log("Socket.io: Callback");
-        callback(res);
     })
 
     socket.on('disconnect', () => {

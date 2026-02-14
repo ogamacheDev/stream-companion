@@ -12,10 +12,11 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Stream Companion",
-        "width": 1300,
+        "width": 650,
         "height": 800,
-        "minWidth": 1300,
+        "minWidth": 650,
         "minHeight": 800
       }
     ],

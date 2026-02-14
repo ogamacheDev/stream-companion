@@ -30,16 +30,14 @@ const getAiState = () => {
 }
 
 const startAI = async (config: any) => {
-    const checkpointer = new MemorySaver();
-
     const model = new ChatOpenAI({
         model: "gpt-4o",
         temperature: 0,
-        apiKey: config.apiKey,
+        apiKey: config.apiKey
     })
     agent = createAgent({
         model: model,
-        checkpointer
+        checkpointer: new MemorySaver()
     })
 
     try {
@@ -66,22 +64,25 @@ const startAI = async (config: any) => {
         const success = response.messages[response.messages.length-1].content == "OK"
         if (success) {
             agentRunning = true;
-            console.log("Socket.io: AI Started Successfully")
+            console.log("AI Started Successfully")
+            return {
+                success: success,
+                messages: response.messages
+            }
         } else {
             agentRunning = false;
-            console.log("Socket.io: Failed Starting AI")
-        }
-
-        return {
-            success: success,
-            messages: response.messages
+            console.log("Failed Starting AI: AI did not respect system instructions.")
+            return {
+                success: success,
+                messages: "AI did not respect system instructions."
+            }
         }
     } catch (error) {
-        console.log("Socket.io: Failed Starting AI")
-
+        console.log("Failed Starting AI:", error?.toString())
+        agentRunning = false;
         return {
             success: false,
-            messages: error
+            messages: error?.toString()
         }
     }
 }

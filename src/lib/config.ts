@@ -80,13 +80,7 @@ const setupConfigLocation = async () => {
     }
 }
 
-const saveConfig = async (config: Config, key: string) => {
-    if (!strongholdClient || !stronghold) {
-        throw new Error("Stronghold client not initialized!");
-    }
-
-    await insertRecord("apiKey", key);
-
+const saveConfig = async (config: Config) => {
     await setupConfigLocation();
     await writeTextFile('config.json', JSON.stringify(config, null, 2), {
         baseDir: BaseDirectory.AppData
@@ -94,12 +88,6 @@ const saveConfig = async (config: Config, key: string) => {
 }
 
 const fetchConfig = async () => {
-    if (!strongholdClient || !stronghold) {
-        throw new Error("Stronghold client not initialized!");
-    }
-
-    const apiKey = await getRecord("apiKey");
-
     await setupConfigLocation();
     const fileExists = await exists('config.json', {
         baseDir: BaseDirectory.AppData
@@ -110,10 +98,7 @@ const fetchConfig = async () => {
             baseDir: BaseDirectory.AppData
         });
 
-        return {
-            apiKey: apiKey,
-            config: defaultConfig
-        }
+        return defaultConfig;
     }
 
     const config = await readTextFile("config.json", {
@@ -121,14 +106,11 @@ const fetchConfig = async () => {
     })
 
     try {
-        return {
-            apiKey: apiKey,
-            config: JSON.parse(config)
-        }
+        return JSON.parse(config);
     } catch {
         throw new Error("Failed to parse config.");
     }
 }
 
-export { strongholdInit, saveConfig, fetchConfig }
+export { strongholdInit, saveConfig, fetchConfig, getRecord, insertRecord }
 export type { Config }

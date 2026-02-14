@@ -1,7 +1,8 @@
 import {toast} from "sonner";
 import {io, Socket} from "socket.io-client";
 import {invoke} from "@tauri-apps/api/core";
-import {fetchConfig, strongholdInit} from "@/lib/config.ts";
+import {fetchConfig, getRecord, strongholdInit} from "@/lib/config.ts";
+import {info, error} from "@tauri-apps/plugin-log";
 
 let socket: Socket;
 
@@ -16,23 +17,24 @@ const backendInit = async () => {
                 }
             }).connect();
 
-            socket.on("connect", () => {
-                console.log("Socket.io: Connected");
+            socket.on("connect", async () => {
+                await info("Backend: Connected");
                 resolve(true);
                 return true;
             })
 
-            socket.on("connect_error", (error) => {
-                console.error(error);
+            socket.on("connect_error", async (message) => {
+                await error("Backend: Connection Error");
+                await error(message.toString());
                 reject();
                 return;
             })
 
             socket.on("disconnect", (message) => {
-                console.log("Socket.io: Disconnected", message)
+                console.log("Backend: Disconnected", message)
             })
-        } catch (error) {
-            console.error(error);
+        } catch (message) {
+            await error(message?.toString() ?? "")
             reject();
             return;
         }
@@ -46,8 +48,8 @@ const getAiState = async () => {
             socket.emit("ai:status", (res: boolean) => {
                 resolve(res);
             })
-        } catch (error) {
-            console.error(error)
+        } catch (message) {
+            await error(message?.toString() ?? "")
             reject();
         }
     });
@@ -56,31 +58,37 @@ const getAiState = async () => {
 const startAi = async () => {
     const startPromise = new Promise<boolean>(async (resolve, reject) => {
         try {
-            const { apiKey, config } = await fetchConfig();
-            socket.emit("ai:start", {
-                apiKey: apiKey,
-                message: JSON.stringify({
-                    type: "system",
-                    context: config.context
-                })
-            }, (res: any) => {
-                if (res.success) {
-                    resolve(true);
+            const config = await fetchConfig();
+            const apiKey = await getRecord("apiKey");
+
+            if (apiKey) {
+                socket.emit("ai:start", {
+                    apiKey: apiKey,
+                    message: JSON.stringify({
+                        type: "system",
+                        context: config.context
+                    })
+                }, async (res: any) => {
+                    if (res.success) {
+                        resolve(true);
+                        return;
+                    }
+                    reject(res.messages);
                     return;
-                }
-                console.log("AI Companion failed to start", res)
-                reject();
-            })
-        } catch (error) {
-            console.error(error)
-            reject();
+                })
+            } else {
+                reject("No API Key Found, please setup the OpenAI Integration.");
+            }
+        } catch (message) {
+            await error(message?.toString() ?? "")
+            reject(message);
         }
     });
 
     toast.promise(startPromise, {
         loading: "Starting AI Companion...",
         success: "AI Companion started successfully!",
-        error: "Failed to start AI Companion."
+        error: (error) => `Failed to start AI Companion: ${error}`
     })
 
     return startPromise;
