@@ -4,6 +4,7 @@ import {createAgent} from "langchain";
 import type {ReactAgent} from "langchain";
 
 let agent: ReactAgent | null = null;
+let agentRunning: boolean = false;
 
 const instructions = `
 You are a friendly text only Twitch Stream AI Companion. Only respond in text messages.
@@ -24,68 +25,69 @@ You are a friendly text only Twitch Stream AI Companion. Only respond in text me
 - You will keep the information of those messages for future reference and behaviors.
 `;
 
-const aiInit = async (data: any) => {
-    if (agent) {
-        return {
-            success: true,
-            messages: []
-        }
-    }
-
-    console.log("Socket.io: Initiating AI")
-    return await aiStart(data);
+const getAiState = () => {
+    return agentRunning;
 }
 
-const aiStart = async (config: any) => {
-    const checkpointer = new MemorySaver();
-
+const startAI = async (config: any) => {
     const model = new ChatOpenAI({
         model: "gpt-4o",
         temperature: 0,
-        apiKey: config.apiKey,
+        apiKey: config.apiKey
     })
     agent = createAgent({
         model: model,
-        checkpointer,
+        checkpointer: new MemorySaver()
     })
 
     try {
         const response = await agent.invoke(
-            { messages: [
-                {
-                    role: "system",
-                    content: instructions
-                },
-                {
-                    role: "user",
-                    content: config.message
+            {
+                messages: [
+                    {
+                        role: "system",
+                        content: instructions
+                    },
+                    {
+                        role: "user",
+                        content: config.message
+                    }
+                ]
+            },
+            {
+                configurable: {
+                    thread_id: "1"
                 }
-            ]},
-            { configurable: { thread_id: "1" } }
+            }
         )
 
         const success = response.messages[response.messages.length-1].content == "OK"
         if (success) {
-            console.log("Socket.io: AI Initiated")
+            agentRunning = true;
+            console.log("AI Started Successfully")
+            return {
+                success: success,
+                messages: response.messages
+            }
         } else {
-            console.log("Socket.io: Failed initiating AI")
-        }
-
-        return {
-            success: success,
-            messages: response.messages
+            agentRunning = false;
+            console.log("Failed Starting AI: AI did not respect system instructions.")
+            return {
+                success: success,
+                messages: "AI did not respect system instructions."
+            }
         }
     } catch (error) {
-        console.log("Socket.io: Failed initiating AI")
-
+        console.log("Failed Starting AI:", error?.toString())
+        agentRunning = false;
         return {
             success: false,
-            messages: error
+            messages: error?.toString()
         }
     }
 }
 
-const aiMessage = async (message: string) => {
+const messageAi = async (message: string) => {
     if (!agent) {
         return {
             success: false,
@@ -95,13 +97,19 @@ const aiMessage = async (message: string) => {
 
     try {
         const response = await agent.invoke(
-            { messages: [
-                {
-                    role: "user",
-                    content: message
+            {
+                messages: [
+                    {
+                        role: "user",
+                        content: message
+                    }
+                ]
+            },
+            {
+                configurable: {
+                    thread_id: "1"
                 }
-            ]},
-            { configurable: { thread_id: "1" } }
+            }
         )
 
         return {
@@ -109,6 +117,8 @@ const aiMessage = async (message: string) => {
             message: response.messages[response.messages.length-1].content
         }
     } catch (error) {
+        agentRunning = false;
+
         return {
             success: false,
             message: error
@@ -116,4 +126,4 @@ const aiMessage = async (message: string) => {
     }
 }
 
-export { aiInit, aiStart, aiMessage }
+export { startAI, messageAi, getAiState }

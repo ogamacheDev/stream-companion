@@ -1,13 +1,13 @@
-
-use std::sync::{Arc, Mutex};
-use tauri::{Manager};
-use tauri_plugin_shell::process::{CommandEvent};
-use tauri_plugin_shell::ShellExt;
 use rand::Rng;
+use std::sync::{Arc, Mutex};
+use tauri::Manager;
+use tauri_plugin_shell::process::CommandEvent;
+use tauri_plugin_shell::ShellExt;
+use tauri_plugin_log::{log, Target, TargetKind};
 
 pub struct AppState {
     pub auth_token: Arc<Mutex<String>>,
-    child: Mutex<Option<tauri_plugin_shell::process::CommandChild>>
+    child: Mutex<Option<tauri_plugin_shell::process::CommandChild>>,
 }
 
 #[tauri::command]
@@ -19,6 +19,11 @@ fn get_auth_token(state: tauri::State<'_, AppState>) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(tauri_plugin_log::log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_keyring::init())
         .plugin(tauri_plugin_shell::init())
@@ -31,7 +36,8 @@ pub fn run() {
                 .app_local_data_dir()
                 .expect("could not resolve backend local data path")
                 .join("salt.txt");
-            app.handle().plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+            app.handle()
+                .plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
 
             // Backend
             let token: String = rand::thread_rng()
@@ -41,14 +47,11 @@ pub fn run() {
                 .collect();
 
             let sidecar = app.shell().sidecar("backend").unwrap();
-            let (mut rx, child) = sidecar
-                .env("AUTH_TOKEN", &token)
-                .spawn()
-                .unwrap();
+            let (mut rx, child) = sidecar.env("AUTH_TOKEN", &token).spawn().unwrap();
 
             app.manage(AppState {
                 child: Mutex::new(Some(child)),
-                auth_token: Arc::new(Mutex::new(token.clone()))
+                auth_token: Arc::new(Mutex::new(token.clone())),
             });
 
             tauri::async_runtime::spawn(async move {
@@ -56,14 +59,15 @@ pub fn run() {
                     match event {
                         CommandEvent::Stdout(line) => {
                             let text = String::from_utf8_lossy(&line);
-                            println!("{}", text);
+                            log::info!("{}", text);
                         }
                         CommandEvent::Stderr(line) => {
                             let text = String::from_utf8_lossy(&line);
-                            eprintln!("Backend Error: {}", text);
+                            log::error!("{}", text);
+
                         }
                         CommandEvent::Terminated(payload) => {
-                            println!("Backend Terminated: {:?}", payload.code);
+                            log::info!("SideCar Terminated: {:?}", payload.code);
                         }
                         _ => {}
                     }

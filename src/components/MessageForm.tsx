@@ -4,43 +4,25 @@ import {Input} from "@/components/ui/input.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Field, FieldGroup} from "@/components/ui/field.tsx";
 import {Label} from "@/components/ui/label.tsx";
-import {toast} from "sonner";
-import {client} from "@/lib/backend.ts";
+import {messageAi} from "@/lib/backend.ts";
 
 const MessageForm = ({ isAiReady }: { isAiReady: boolean }) => {
     const [isSending, setIsSending] = useState(false);
     const [username, setUsername] = useState("");
     const [message, setMessage] = useState("")
 
-    const messageFormHandler: SubmitEventHandler<HTMLFormElement> = async (event) => {
+    const messageSendHandler: SubmitEventHandler<HTMLFormElement> = async (event) => {
         event.preventDefault();
-
         setIsSending(true);
-        toast.promise(() => new Promise(async (resolve, reject) => {
-            client.emit("ai:message",
-                JSON.stringify({
-                    type: "event",
-                    user: username,
-                    message: message
-                }),
-                (res: any) => {
-                    setIsSending(false);
-                    console.log(res)
-                    if (res.success) {
-                        resolve(res.message);
-                        return;
-                    }
-                    reject();
-                })
-            }), {
-                loading: "Sending...",
-                success: "Message Sent!",
-                error: "Error",
-            })
+
+        const success = await messageAi(`${username} asked ${message}`)
+        if (success) {
+            setIsSending(false);
+        }
     }
 
     return (
-        <form onSubmit={messageFormHandler} className="w-full h-fit">
+        <form onSubmit={messageSendHandler} className="w-full h-fit">
             <FieldGroup>
                 <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
                     Message

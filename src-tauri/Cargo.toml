@@ -1,6 +1,6 @@
 [package]
 name = "stream-companion"
-version = "0.1.1"
+version = "0.2.0"
 description = "An AI Streamer Companion that allows integration with many streaming platforms and services through Websocket."
 authors = ["OllieDev"]
 edition = "2021"
@@ -30,3 +30,5 @@ tauri-plugin-stronghold = "2"
 rand = "0.8"
 tauri-plugin-keyring = "0.1.0"
 tauri-plugin-fs = "2"
+tauri-plugin-log = "2"
+log = "0.4.29"
